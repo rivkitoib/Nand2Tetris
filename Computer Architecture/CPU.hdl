@@ -40,4 +40,38 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+
+	//ALU
+
+    Not(in=instruction[15], out=Ainstruction); // @
+    And(a=instruction[15], b=instruction[5], out=AssignToA);    // A= 
+    Mux16(a=instruction, b=ALUout, sel=AssignToA, out=Aregis);
+    Or(a=Ainstruction, b=AssignToA, out=loadA);    // change A if A-inst or C-inst&dest to A-reg
+    ARegister(in=Aregis, load=loadA, out=Aout);
+    
+    Mux16(a=Aout, b=inM, sel=instruction[12], out=AorM);   // select A or M according to the a-bit
+
+    And(a=instruction[15], b=instruction[4], out=loadD); // D=
+    DRegister(in=ALUout, load=loadD, out=Dout);  
+    
+    ALU(x=Dout, y=AorM, zx=instruction[11], nx=instruction[10],zy=instruction[9], ny=instruction[8], f=instruction[7],no=instruction[6], out=ALUout, zr=IsZero,ng=IsNegative);
+
+	//PC
+    Or(a=IsZero,b=IsNegative,out=zeroORnegative);
+    Not(in=zeroORnegative,out=IsPositive);
+    And(a=instruction[0],b=IsPositive,out=positive);
+    And(a=instruction[1],b=IsZero,out=zero);
+    And(a=instruction[2],b=IsNegative,out=negative);
+    Or(a=positive,b=negative,out=pORn);
+    Or(a=pORn,b=zero,out=pORnORz);
+    And(a=instruction[15],b=pORnORz,out=loadPc);
+    Not(in=loadPc,out=incPc);
+    PC(in=Aout,load=loadPc,inc=incPc,reset=reset,out[0..14]=pc);
+
+	//writing memory
+    And16(a=true, b=Aout, out[0..14]=addressM);
+    And16(a=true, b=ALUout, out=outM);
+    And(a=instruction[15], b=instruction[3], out=writeM);
+    
+
 }
