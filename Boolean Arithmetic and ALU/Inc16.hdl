@@ -14,4 +14,9 @@ CHIP Inc16 {
 
     PARTS:
    // Put you code here:
+Add16(a=true,b=true,out=TpT);
+Not16(in=TpT,out=notTpT);
+Add16(a=in,b=notTpT,out=out);
 }
+
+
